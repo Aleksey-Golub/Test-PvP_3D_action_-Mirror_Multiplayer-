@@ -1,6 +1,6 @@
-using Assets.CodeBase.CharacterComponents;
+using Assets.CodeBase.Logic;
 using Assets.CodeBase.Logic.CharacterComponents;
-using Assets.CodeBase.Services.Input;
+using Assets.CodeBase.Services.InputService;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,26 +16,42 @@ namespace Assets.CodeBase.Player
         [SerializeField] private Dasher _dasher;
 
         [Header("Settings")]
+        [SerializeField] private float _immortalDuration = 3f;
 
+        [Header("Debug")]
+        [SerializeField] private bool _isPlayer;
+
+        public bool IsImmortal { get; private set; }
+
+        private Timer _immortalTimer = new Timer();
         private IInputService _input;
+        private Camera _camera;
+        private Vector3 _normalizedMovementVector;
         private PlayerStateBase _state;
         private Dictionary<Type, PlayerStateBase> _states;
 
-        public bool IsImmortal { get; private set; }
-        public RotatorBase Rotator { get => _rotator; set => _rotator = value; }
+        private void Start()
+        {
+            if (_isPlayer == false)
+                Construct(new FakeInput(), Camera.main);
+        }
 
         public void Update()
         {
             float deltaTime = Time.deltaTime;
 
+            if (IsImmortal)
+                UpdateAndCheckImmortality(deltaTime);
+
+            CalculateNormalizedMovementVector();
             _dasher.Tik(deltaTime);
             _state.Execute(deltaTime);
         }
 
-        public void Construct(IInputService input)
+        public void Construct(IInputService input, Camera camera)
         {
             _input = input;
-
+            _camera = camera;
 
             _states = new Dictionary<Type, PlayerStateBase>()
             {
@@ -46,6 +62,13 @@ namespace Assets.CodeBase.Player
             TransitionTo<SimpleState>();
         }
 
+        public void TakeDamage()
+        {
+            print(gameObject.name + " TakeDamage");
+            IsImmortal = true;
+            _viewer.SetDamaged(true);
+        }
+
         private void TransitionTo<TPlayerState>() where TPlayerState : PlayerStateBase
         {
             _state?.Exit();
@@ -54,80 +77,21 @@ namespace Assets.CodeBase.Player
             _state.Enter();
         }
 
-        private class SimpleState : PlayerStateBase
+        private void CalculateNormalizedMovementVector()
         {
-            public SimpleState(PlayerController controller) : base(controller)
-            {
-            }
-
-            public override void Enter()
-            {
-            }
-
-            public override void Execute(float deltaTime)
-            {
-                Vector3 movementVector = new Vector3(Controller._input.Axis.x, 0, Controller._input.Axis.y);
-
-                Controller._rotator.RotateIn(movementVector.normalized, deltaTime);
-                Controller._mover.Move(movementVector, deltaTime);
-                Controller._viewer.PlayMove(Controller._mover.SpeedVectorMagnitude);
-
-                CheckNeedAndDoTransitions();
-            }
-
-            public override void Exit()
-            {
-            }
-
-            protected override bool CheckNeedAndDoTransitions()
-            {
-                if (Controller._input.IsDashButtonDown && Controller._dasher.CanDash)
-                {
-                    Controller.TransitionTo<InDashState>();
-                    return true;
-                }
-
-                return false;
-            }
+            _normalizedMovementVector = _camera.transform.TransformDirection(_input.MoveAxis);
+            _normalizedMovementVector.y = 0;
+            _normalizedMovementVector.Normalize();
         }
 
-        private class InDashState : PlayerStateBase
+        private void UpdateAndCheckImmortality(float deltaTime)
         {
-            private bool _dashEneded;
-
-            public InDashState(PlayerController controller) : base(controller)
+            _immortalTimer.Tik(deltaTime);
+            if (_immortalTimer.Value >= _immortalDuration)
             {
-            }
-
-            public override void Enter()
-            {
-                Controller._viewer.PlayDash();
-            }
-
-            public override void Execute(float deltaTime)
-            {
-                Vector3 movementVector = Controller.transform.forward;
-
-                Controller._rotator.RotateIn(movementVector.normalized, deltaTime);
-                _dashEneded = Controller._dasher.Dash(movementVector, deltaTime);
-
-                CheckNeedAndDoTransitions();
-            }
-
-            public override void Exit()
-            {
-                Controller._viewer.StopDash();
-            }
-
-            protected override bool CheckNeedAndDoTransitions()
-            {
-                if (_dashEneded)
-                {
-                    Controller.TransitionTo<SimpleState>();
-                    return true;
-                }
-
-                return false;
+                _immortalTimer.Reset();
+                IsImmortal = false;
+                _viewer.SetDamaged(false);
             }
         }
     }

@@ -12,10 +12,12 @@ namespace Assets.CodeBase.Logic.CharacterComponents
         {
             MovementSpeed = movementSpeed;
         }
+
         /// <summary>
         /// moving at the speed specified in the component's inspector
         /// </summary>
         public abstract void Move(Vector3 direction, float deltaTime);
+
         /// <summary>
         /// moving at a specified speed
         /// </summary>
