@@ -6,7 +6,8 @@ namespace Assets.CodeBase.Services.InputService
     {
         Vector2 MoveAxis { get; }
         Vector2 PointerAxis { get; }
-        bool IsDashButtonDown { get; }
+        bool IsMainPointerButtonDown { get; }
+        bool IsEscButtonDown { get; }
         Vector3 PointerPosition { get; }
     }
 }

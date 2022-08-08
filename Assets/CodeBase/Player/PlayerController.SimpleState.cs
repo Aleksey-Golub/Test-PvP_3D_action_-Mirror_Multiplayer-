@@ -27,7 +27,7 @@
 
             protected override bool CheckNeedAndDoTransitions()
             {
-                if (Controller._input.IsDashButtonDown && Controller._dasher.CanDash)
+                if (Controller._input.IsMainPointerButtonDown && Controller._dasher.CanDash)
                 {
                     Controller.TransitionTo<InDashState>();
                     return true;

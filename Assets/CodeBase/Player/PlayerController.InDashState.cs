@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Assets.CodeBase.Player
 {
@@ -42,6 +43,11 @@ namespace Assets.CodeBase.Player
 
                 return false;
             }
+        }
+
+        internal void SetScoreText(object value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

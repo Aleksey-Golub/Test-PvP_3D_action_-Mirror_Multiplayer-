@@ -10,11 +10,9 @@ namespace Assets.CodeBase.Services.InputService
         private const string MOUSE_Y = "Mouse Y";
 
         public Vector2 MoveAxis => new Vector2(Input.GetAxis(HORIZONTAL), Input.GetAxis(VERTICAL));
-
-        public bool IsDashButtonDown => Input.GetKeyDown(KeyCode.Mouse0);
-
         public Vector3 PointerPosition => Input.mousePosition;
-
         public Vector2 PointerAxis => new Vector2(Input.GetAxis(MOUSE_X), Input.GetAxis(MOUSE_Y));
+        public bool IsMainPointerButtonDown => Input.GetKeyDown(KeyCode.Mouse0);
+        public bool IsEscButtonDown => Input.GetKeyDown(KeyCode.Escape);
     }
 }

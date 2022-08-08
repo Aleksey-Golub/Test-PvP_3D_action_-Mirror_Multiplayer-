@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System;
 using Assets.CodeBase.Player;
+using Mirror;
 
 namespace Assets.CodeBase.Logic.CharacterComponents
 {
-    public class Dasher : MonoBehaviour
+    public class Dasher : NetworkBehaviour
     {
         [SerializeField] private PlayerController _controller;
         [SerializeField] private float _rechargeTime = 5f;
@@ -45,7 +46,7 @@ namespace Assets.CodeBase.Logic.CharacterComponents
             _dashMakeTimer.Tik(deltaTime);
             _mover.Move(movementVector, deltaTime, DashSpeed);
 
-            CheckHitAndDoDamage();
+            CmdCheckHitAndDoDamage();
 
             if (_dashMakeTimer.Value >= _duration)
             {
@@ -56,7 +57,8 @@ namespace Assets.CodeBase.Logic.CharacterComponents
             return false;
         }
 
-        private void CheckHitAndDoDamage()
+        [Command]
+        private void CmdCheckHitAndDoDamage()
         {
             GetCapsuleFocuses(out Vector3 point0, out Vector3 point1);
 
@@ -69,8 +71,11 @@ namespace Assets.CodeBase.Logic.CharacterComponents
 
             for (int i = 0; i < hitCount; i++)
             {
-                if (_hits[i].TryGetComponent(out PlayerController controller) && controller != _controller && controller.IsImmortal == false)
+                if (_hits[i].TryGetComponent(out PlayerController controller) && controller != _controller && controller.IsDamaged == false)
+                {
                     controller.TakeDamage();
+                    _controller.IncreaseScore();
+                }
             }
         }
 

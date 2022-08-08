@@ -17,19 +17,23 @@ namespace Assets.CodeBase.CameraLogic
 
         [field: SerializeField] public Camera Camera { get; private set; }
 
-        public void Construct(Transform target, IInputService input)
-        {
-            _target = target;
-            _input = input;
-
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
         private void LateUpdate()
         {
+            if (_target == null)
+                return;
+
             Move();
             Rotate();
+        }
+
+        public void Construct(IInputService input)
+        {
+            _input = input;
+        }
+
+        public void SetTarget(Transform target)
+        {
+            _target = target;
         }
 
         private void Rotate()
